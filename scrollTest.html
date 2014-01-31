@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>ScrollTest</title>
+	<style>
+		body {
+			padding:0;
+			margin:0;
+			font-size:10px;
+			font-family:monospace;
+		}
+		body * {
+			padding:0;
+			margin:0;
+		}
+		#testScroll{
+			border:1px solid red;
+			height: 100%;
+		}
+		#testScroll div {
+			position:relative;
+			background:#ccc;
+			border:1px dotted #666;
+		}
+		#testScroll div p {
+			padding:20px 100px 20px 100px;
+			line-height:20px;
+			color:#bbb;
+		}
+		#testScroll div div.output {
+			position:absolute;
+			border:1px solid black;
+			background:#666;
+			color:#eee;
+			width:10%;
+			top:40%;
+			left:45%;
+			text-align:center;
+		}
+		#testScroll div div.output p {
+			color:#eee;
+			padding:0;
+		}
+		
+		/*main output*/
+		#output {
+			position:fixed;
+			top:0;
+			padding:10px;
+			background:#666;
+			color:#eee;
+			z-index:10;
+		}
+		
+	</style>
+	<script>
+		var scrollTest;
+		/*helpers*/
+		function getRatio(d1,d2,valueOf1){
+			d1 = d1 * 0.1;
+			d2 = d2 * 0.1;
+			//return valueOf2
+			return Math.round( (d2*valueOf1) / d1 );
+		};
+		/**
+		 * @Class Scroller
+		 */
+		function Scroller(){
+			this.wrap = document.getElementById('testScroll');
+			this.output = document.getElementById('output');
+			this.mainPercentOut = this.output.getElementsByClassName('mainPercent')[0];
+			this.scenePercent = this.output.getElementsByClassName('scenePercent')[0];//set from scene
+			this.kids = this.wrap.getElementsByClassName('scene');
+			this.scenes = [];
+			this.currentScene = 0;
+			this.direction = 'down';
+			this.lastScrollPercentage = 0;
+			
+			for(var i = 0; i<this.kids.length; i++){
+				this.scenes.push( new Scene(this, this.kids[i],i)  );
+			}
+
+			this.accumulativeHeightsScrolled = this.scenes[this.currentScene].heightPercentage;
+		};
+		Scroller.prototype.resize = function(){
+			for(var i = 0; i<this.scenes.length; i++){
+				this.scenes[i].getHeightPercentage();
+			}
+		};
+		Scroller.prototype.scroll = function(){
+			this.scrollPercentage =  window.pageYOffset  / ( document.body.offsetHeight  - window.innerHeight);
+			this.scrollPercentage = Math.round(this.scrollPercentage*100);
+			this.mainPercentOut.innerHTML = 'Scroll Percentage: ' +this.scrollPercentage + ' %';
+			
+			
+			//direction
+			if(this.lastScrollPercentage > this.scrollPercentage ){
+				this.direction = 'up';
+			}
+			if(this.lastScrollPercentage < this.scrollPercentage ){
+				this.direction = 'down';
+			}
+			//set last scroll percentage
+			this.lastScrollPercentage  = this.scrollPercentage;
+			
+			
+			console.log('scroll',this.scrollPercentage,this.direction)
+			
+			this.updateScene();
+		};
+		Scroller.prototype.updateScene = function(){
+			//TODO subtract prior scences 
+			this.scenes[this.currentScene].animate(  this.scrollPercentage  );
+			
+			if(this.scrollPercentage > this.accumulativeHeightsScrolled ){
+				this.accumulativeHeightsScrolled += this.scenes[this.currentScene].heightPercentage;
+				this.currentScene ++;
+			}
+		};
+		/**
+		 * @Class Scene
+		 */
+		function Scene( constructor, ele , index ){
+			this.constructor = constructor;
+			this.ele = ele;
+			this.output = this.ele.getElementsByClassName('output')[0];
+			this.nameOut = this.output.getElementsByClassName('name')[0];
+			this.heightOut = this.output.getElementsByClassName('height')[0];
+			this.aniOut = this.output.getElementsByClassName('animation')[0];
+			
+			this.sceneNumber = index;
+			
+			this.nameOut.innerHTML = 'scene '+ this.sceneNumber  + '';
+			
+			this.getHeightPercentage();
+		};
+		Scene.prototype.getHeightPercentage = function(){
+			this.heightPercentage = ( (this.ele.offsetHeight*100) / document.body.offsetHeight );
+			this.heightPercentage = Math.round(this.heightPercentage);
+			this.heightOut.innerHTML = 'height '+ this.ele.offsetHeight +'px / '+ this.heightPercentage+ '%';
+		};
+		Scene.prototype.animate = function( percentage ){
+			this.aniPercentage = Math.round( (percentage * 100 )/this.heightPercentage );
+			
+			this.aniOut.innerHTML = 'Animation: ' +this.aniPercentage + ' %';
+			
+			this.constructor.scenePercent.innerHTML =  'Scene '+ this.sceneNumber  + ' - Animated: ' +this.aniPercentage + ' %'
+		};
+		
+		
+		
+		//events
+		window.addEventListener('load',function(){
+			scrollTest = new Scroller();
+		},false);
+		window.addEventListener('resize',function(){
+			scrollTest.resize();
+		},false);
+		window.addEventListener('scroll',function(){
+			scrollTest.scroll();
+		},false);
+	</script>
+</head>
+
+</head>
+<body>
+	<div id="output">
+		<p class="mainPercent"></p>
+		<p class="scenePercent"></p>
+	</div>
+	<div id="testScroll">
+		<div class="scene one">
+			<div class="output">
+				<p class="name"></p>
+				<p class="height"></p>
+				<p class="animation"></p>
+			</div>
+			
+			<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec ultrices volutpat sodales. Etiam cursus sed quam pellentesque suscipit. Fusce luctus lorem sed risus rutrum euismod. Nam diam nulla, vulputate a vulputate non, tempus ac nisl. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Pellentesque placerat auctor luctus. Suspendisse lacinia ligula orci, in lobortis dolor suscipit tristique. Proin ut lorem nec justo dignissim tempor sed et augue. Maecenas tempor aliquam facilisis. Sed at justo dictum, posuere nisl et, luctus sapien. Curabitur neque dolor, sollicitudin eu sodales eu, tincidunt a velit. Aliquam ipsum massa, vestibulum in lorem rhoncus, interdum mollis urna. Cras eu tortor in ipsum volutpat facilisis. Fusce id sodales tellus. Ut sed nulla quis ante malesuada faucibus in sit amet magna.</p>
+
+<p>Proin gravida volutpat diam a lobortis. Morbi vel tellus eget mauris semper luctus. Suspendisse urna urna, lacinia at egestas eget, accumsan accumsan lacus. Cras nec consectetur neque, vitae pharetra lorem. Curabitur iaculis sapien at velit interdum, vel varius turpis suscipit. Cras quis magna a nibh feugiat consequat. Quisque ante arcu, aliquam ac nisl nec, pulvinar varius dolor. Vivamus sodales risus quis viverra egestas. Sed rhoncus, sapien fermentum pellentesque dignissim, dui odio ultricies est, non venenatis sem ipsum nec risus. Phasellus nisi enim, porttitor sit amet tellus id, pellentesque aliquam est. Praesent et mauris commodo, imperdiet nulla nec, egestas mauris. Proin sollicitudin risus arcu, eget consectetur dui tristique quis. Vestibulum luctus sapien lacus, ut faucibus est blandit eget.</p>
+
+<p>Donec orci ligula, dapibus sed luctus in, posuere quis nisi. Nulla facilisi. Curabitur et quam sed lectus volutpat ullamcorper. Donec neque nisi, feugiat vel purus ac, hendrerit tincidunt nibh. Vestibulum consectetur porttitor tortor, sed lobortis augue blandit eu. In in vestibulum nulla. Vivamus dapibus, justo vel venenatis semper, nibh ipsum bibendum felis, ut ullamcorper ipsum ligula at nisl. Ut augue ligula, porta sit amet hendrerit eget, lacinia sed mi. Suspendisse vel faucibus nulla. Praesent accumsan molestie sagittis. Pellentesque lacinia enim id arcu dignissim cursus. Integer ac lobortis diam. Nullam malesuada sapien non dictum lobortis. Sed et rutrum dolor, in rhoncus metus.</p>
+
+<p>Etiam nisi orci, mollis quis pharetra tincidunt, placerat imperdiet quam. Duis iaculis pretium ante nec iaculis. In lobortis suscipit est, eu hendrerit odio ornare in. Cras venenatis eros quis metus semper dignissim. Donec lobortis convallis mauris, vel ornare tellus euismod a. Maecenas tempor ligula porta dui fermentum, et posuere arcu varius. Praesent hendrerit sem commodo metus eleifend, vitae eleifend leo eleifend.</p>
+
+<p>Proin hendrerit arcu sed rhoncus tincidunt. Aenean leo nisi, egestas id aliquam in, laoreet non erat. Sed convallis lobortis elementum. Nam pellentesque dolor sed pulvinar semper. Nulla sed elementum est, sed porttitor nibh. Aenean viverra, ipsum sit amet cursus auctor, nunc neque auctor ligula, sed vehicula lacus nibh nec mi. Sed ac nunc consequat, sagittis tellus vel, condimentum metus. In at egestas ipsum. Morbi ac ante bibendum, bibendum leo non, feugiat dolor. Quisque porta cursus nisl in scelerisque. Integer massa turpis, posuere in mattis aliquet, feugiat euismod enim. Praesent pellentesque est ac nunc ultricies blandit id id libero. Donec dignissim sem a turpis dignissim consequat.</p>
+			
+		</div>
+		<div class="scene two">
+			<div class="output">
+				<p class="name"></p>
+				<p class="height"></p>
+				<p class="animation"></p>
+			</div>
+			
+			<p>Donec orci ligula, dapibus sed luctus in, posuere quis nisi. Nulla facilisi. Curabitur et quam sed lectus volutpat ullamcorper. Donec neque nisi, feugiat vel purus ac, hendrerit tincidunt nibh. Vestibulum consectetur porttitor tortor, sed lobortis augue blandit eu. In in vestibulum nulla. Vivamus dapibus, justo vel venenatis semper, nibh ipsum bibendum felis, ut ullamcorper ipsum ligula at nisl. Ut augue ligula, porta sit amet hendrerit eget, lacinia sed mi. Suspendisse vel faucibus nulla. Praesent accumsan molestie sagittis. Pellentesque lacinia enim id arcu dignissim cursus. Integer ac lobortis diam. Nullam malesuada sapien non dictum lobortis. Sed et rutrum dolor, in rhoncus metus.</p>
+
+			<p>Etiam nisi orci, mollis quis pharetra tincidunt, placerat imperdiet quam. Duis iaculis pretium ante nec iaculis. In lobortis suscipit est, eu hendrerit odio ornare in. Cras venenatis eros quis metus semper dignissim. Donec lobortis convallis mauris, vel ornare tellus euismod a. Maecenas tempor ligula porta dui fermentum, et posuere arcu varius. Praesent hendrerit sem commodo metus eleifend, vitae eleifend leo eleifend.</p>
+
+			<p>Proin hendrerit arcu sed rhoncus tincidunt. Aenean leo nisi, egestas id aliquam in, laoreet non erat. Sed convallis lobortis elementum. Nam pellentesque dolor sed pulvinar semper. Nulla sed elementum est, sed porttitor nibh. Aenean viverra, ipsum sit amet cursus auctor, nunc neque auctor ligula, sed vehicula lacus nibh nec mi. Sed ac nunc consequat, sagittis tellus vel, condimentum metus. In at egestas ipsum. Morbi ac ante bibendum, bibendum leo non, feugiat dolor. Quisque porta cursus nisl in scelerisque. Integer massa turpis, posuere in mattis aliquet, feugiat euismod enim. Praesent pellentesque est ac nunc ultricies blandit id id libero. Donec dignissim sem a turpis dignissim consequat.</p>
+			
+		</div>
+		<div class="scene three">
+			<div class="output">
+				<p class="name"></p>
+				<p class="height"></p>
+				<p class="animation"></p>
+			</div>
+			
+			<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec ultrices volutpat sodales. Etiam cursus sed quam pellentesque suscipit. Fusce luctus lorem sed risus rutrum euismod. Nam diam nulla, vulputate a vulputate non, tempus ac nisl. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Pellentesque placerat auctor luctus. Suspendisse lacinia ligula orci, in lobortis dolor suscipit tristique. Proin ut lorem nec justo dignissim tempor sed et augue. Maecenas tempor aliquam facilisis. Sed at justo dictum, posuere nisl et, luctus sapien. Curabitur neque dolor, sollicitudin eu sodales eu, tincidunt a velit. Aliquam ipsum massa, vestibulum in lorem rhoncus, interdum mollis urna. Cras eu tortor in ipsum volutpat facilisis. Fusce id sodales tellus. Ut sed nulla quis ante malesuada faucibus in sit amet magna.</p>
+
+<p>Proin gravida volutpat diam a lobortis. Morbi vel tellus eget mauris semper luctus. Suspendisse urna urna, lacinia at egestas eget, accumsan accumsan lacus. Cras nec consectetur neque, vitae pharetra lorem. Curabitur iaculis sapien at velit interdum, vel varius turpis suscipit. Cras quis magna a nibh feugiat consequat. Quisque ante arcu, aliquam ac nisl nec, pulvinar varius dolor. Vivamus sodales risus quis viverra egestas. Sed rhoncus, sapien fermentum pellentesque dignissim, dui odio ultricies est, non venenatis sem ipsum nec risus. Phasellus nisi enim, porttitor sit amet tellus id, pellentesque aliquam est. Praesent et mauris commodo, imperdiet nulla nec, egestas mauris. Proin sollicitudin risus arcu, eget consectetur dui tristique quis. Vestibulum luctus sapien lacus, ut faucibus est blandit eget.</p>
+
+<p>Donec orci ligula, dapibus sed luctus in, posuere quis nisi. Nulla facilisi. Curabitur et quam sed lectus volutpat ullamcorper. Donec neque nisi, feugiat vel purus ac, hendrerit tincidunt nibh. Vestibulum consectetur porttitor tortor, sed lobortis augue blandit eu. In in vestibulum nulla. Vivamus dapibus, justo vel venenatis semper, nibh ipsum bibendum felis, ut ullamcorper ipsum ligula at nisl. Ut augue ligula, porta sit amet hendrerit eget, lacinia sed mi. Suspendisse vel faucibus nulla. Praesent accumsan molestie sagittis. Pellentesque lacinia enim id arcu dignissim cursus. Integer ac lobortis diam. Nullam malesuada sapien non dictum lobortis. Sed et rutrum dolor, in rhoncus metus.</p>
+
+<p>Etiam nisi orci, mollis quis pharetra tincidunt, placerat imperdiet quam. Duis iaculis pretium ante nec iaculis. In lobortis suscipit est, eu hendrerit odio ornare in. Cras venenatis eros quis metus semper dignissim. Donec lobortis convallis mauris, vel ornare tellus euismod a. Maecenas tempor ligula porta dui fermentum, et posuere arcu varius. Praesent hendrerit sem commodo metus eleifend, vitae eleifend leo eleifend.</p>
+
+<p>Proin hendrerit arcu sed rhoncus tincidunt. Aenean leo nisi, egestas id aliquam in, laoreet non erat. Sed convallis lobortis elementum. Nam pellentesque dolor sed pulvinar semper. Nulla sed elementum est, sed porttitor nibh. Aenean viverra, ipsum sit amet cursus auctor, nunc neque auctor ligula, sed vehicula lacus nibh nec mi. Sed ac nunc consequat, sagittis tellus vel, condimentum metus. In at egestas ipsum. Morbi ac ante bibendum, bibendum leo non, feugiat dolor. Quisque porta cursus nisl in scelerisque. Integer massa turpis, posuere in mattis aliquet, feugiat euismod enim. Praesent pellentesque est ac nunc ultricies blandit id id libero. Donec dignissim sem a turpis dignissim consequat.</p>
+		</div>
+		<div class="scene four">
+			<div class="output">
+				<p class="name"></p>
+				<p class="height"></p>
+				<p class="animation"></p>
+			</div>
+
+
+<p>Proin hendrerit arcu sed rhoncus tincidunt. Aenean leo nisi, egestas id aliquam in, laoreet non erat. Sed convallis lobortis elementum. Nam pellentesque dolor sed pulvinar semper. Nulla sed elementum est, sed porttitor nibh. Aenean viverra, ipsum sit amet cursus auctor, nunc neque auctor ligula, sed vehicula lacus nibh nec mi. Sed ac nunc consequat, sagittis tellus vel, condimentum metus. In at egestas ipsum. Morbi ac ante bibendum, bibendum leo non, feugiat dolor. Quisque porta cursus nisl in scelerisque. Integer massa turpis, posuere in mattis aliquet, feugiat euismod enim. Praesent pellentesque est ac nunc ultricies blandit id id libero. Donec dignissim sem a turpis dignissim consequat.</p>
+		</div>
+		<div class="scene five">
+			<div class="output">
+				<p class="name"></p>
+				<p class="height"></p>
+				<p class="animation"></p>
+			</div>
+			
+			<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec ultrices volutpat sodales. Etiam cursus sed quam pellentesque suscipit. Fusce luctus lorem sed risus rutrum euismod. Nam diam nulla, vulputate a vulputate non, tempus ac nisl. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Pellentesque placerat auctor luctus. Suspendisse lacinia ligula orci, in lobortis dolor suscipit tristique. Proin ut lorem nec justo dignissim tempor sed et augue. Maecenas tempor aliquam facilisis. Sed at justo dictum, posuere nisl et, luctus sapien. Curabitur neque dolor, sollicitudin eu sodales eu, tincidunt a velit. Aliquam ipsum massa, vestibulum in lorem rhoncus, interdum mollis urna. Cras eu tortor in ipsum volutpat facilisis. Fusce id sodales tellus. Ut sed nulla quis ante malesuada faucibus in sit amet magna.</p>
+
+<p>Proin gravida volutpat diam a lobortis. Morbi vel tellus eget mauris semper luctus. Suspendisse urna urna, lacinia at egestas eget, accumsan accumsan lacus. Cras nec consectetur neque, vitae pharetra lorem. Curabitur iaculis sapien at velit interdum, vel varius turpis suscipit. Cras quis magna a nibh feugiat consequat. Quisque ante arcu, aliquam ac nisl nec, pulvinar varius dolor. Vivamus sodales risus quis viverra egestas. Sed rhoncus, sapien fermentum pellentesque dignissim, dui odio ultricies est, non venenatis sem ipsum nec risus. Phasellus nisi enim, porttitor sit amet tellus id, pellentesque aliquam est. Praesent et mauris commodo, imperdiet nulla nec, egestas mauris. Proin sollicitudin risus arcu, eget consectetur dui tristique quis. Vestibulum luctus sapien lacus, ut faucibus est blandit eget.</p>
+
+<p>Donec orci ligula, dapibus sed luctus in, posuere quis nisi. Nulla facilisi. Curabitur et quam sed lectus volutpat ullamcorper. Donec neque nisi, feugiat vel purus ac, hendrerit tincidunt nibh. Vestibulum consectetur porttitor tortor, sed lobortis augue blandit eu. In in vestibulum nulla. Vivamus dapibus, justo vel venenatis semper, nibh ipsum bibendum felis, ut ullamcorper ipsum ligula at nisl. Ut augue ligula, porta sit amet hendrerit eget, lacinia sed mi. Suspendisse vel faucibus nulla. Praesent accumsan molestie sagittis. Pellentesque lacinia enim id arcu dignissim cursus. Integer ac lobortis diam. Nullam malesuada sapien non dictum lobortis. Sed et rutrum dolor, in rhoncus metus.</p>
+
+<p>Etiam nisi orci, mollis quis pharetra tincidunt, placerat imperdiet quam. Duis iaculis pretium ante nec iaculis. In lobortis suscipit est, eu hendrerit odio ornare in. Cras venenatis eros quis metus semper dignissim. Donec lobortis convallis mauris, vel ornare tellus euismod a. Maecenas tempor ligula porta dui fermentum, et posuere arcu varius. Praesent hendrerit sem commodo metus eleifend, vitae eleifend leo eleifend.</p>
+		</div>
+	</div>
+</body>
+</html>
