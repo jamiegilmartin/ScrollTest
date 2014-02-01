@@ -14,13 +14,15 @@
 			margin:0;
 		}
 		#testScroll{
-			border:1px solid red;
 			height: 100%;
 		}
 		#testScroll div {
 			position:relative;
 			background:#ccc;
 			border:1px dotted #666;
+			-webkit-box-sizing: border-box;
+			-moz-box-sizing: border-box;
+			box-sizing: border-box;
 		}
 		#testScroll div p {
 			padding:20px 100px 20px 100px;
@@ -54,14 +56,7 @@
 		
 	</style>
 	<script>
-		var scrollTest;
-		/*helpers*/
-		function getRatio(d1,d2,valueOf1){
-			d1 = d1 * 0.1;
-			d2 = d2 * 0.1;
-			//return valueOf2
-			return Math.round( (d2*valueOf1) / d1 );
-		};
+		
 		/**
 		 * @Class Scroller
 		 */
@@ -76,15 +71,20 @@
 			this.direction = 'down';
 			this.lastScrollPercentage = 0;
 			
+			//just cuz
+			this.mainPercentOut.innerHTML = 'Scroll Percentage: ' + 0 + ' %';
+			this.scenePercent.innerHTML = 'Scene '+ 0 + ' - Animated: ' + 0 + ' %';
+			
+			//make scenes
 			for(var i = 0; i<this.kids.length; i++){
 				this.scenes.push( new Scene(this, this.kids[i],i)  );
 			}
 
-			this.accumulativeHeightsScrolled = this.scenes[this.currentScene].heightPercentage;
+			this.accumulativePercentagesScrolled = 0;//this.scenes[this.currentScene].heightPercentage;
 		};
 		Scroller.prototype.resize = function(){
 			for(var i = 0; i<this.scenes.length; i++){
-				this.scenes[i].getHeightPercentage();
+				this.scenes[i].setHeightPercentage();
 			}
 		};
 		Scroller.prototype.scroll = function(){
@@ -103,20 +103,43 @@
 			//set last scroll percentage
 			this.lastScrollPercentage  = this.scrollPercentage;
 			
-			
-			console.log('scroll',this.scrollPercentage,this.direction)
-			
-			this.updateScene();
+			if(this.scrollPercentage <= 100 && this.scrollPercentage >= 0 ) this.updateScene();
 		};
 		Scroller.prototype.updateScene = function(){
-			//TODO subtract prior scences 
-			this.scenes[this.currentScene].animate(  this.scrollPercentage  );
+			var aniTo = this.accumulativePercentagesScrolled < 100 ? this.scrollPercentage - this.accumulativePercentagesScrolled : 100;
 			
-			if(this.scrollPercentage > this.accumulativeHeightsScrolled ){
-				this.accumulativeHeightsScrolled += this.scenes[this.currentScene].heightPercentage;
-				this.currentScene ++;
+			
+			this.scenes[this.currentScene].animate( aniTo );
+			//TODO if accumulativePercentagesScrolled == 100 animate 100 no 0
+			
+			
+			if(this.direction == 'down'){
+				//going down
+			
+				if( this.scrollPercentage >= this.scenes[this.currentScene].heightPercentage + this.accumulativePercentagesScrolled){
+					//add current scene percentage to accumulativePercentagesScrolled
+					this.accumulativePercentagesScrolled += this.scenes[this.currentScene].heightPercentage;
+					
+					//increment current Scene
+					if(this.currentScene < this.scenes.length-1) this.currentScene ++;
+				}
+				
+			}else{
+				//going up
+				if( this.scrollPercentage < this.accumulativePercentagesScrolled ){
+					//last scene checked by accumulativePercentagesScrolled == 100
+					if(this.accumulativePercentagesScrolled !== 100 && this.currentScene > 0 ) this.currentScene --;
+					
+					//remove current scene percentage to accumulativePercentagesScrolled
+					this.accumulativePercentagesScrolled -= this.scenes[this.currentScene].heightPercentage;
+					
+				}
 			}
+			
+			
 		};
+		
+		
 		/**
 		 * @Class Scene
 		 */
@@ -132,23 +155,27 @@
 			
 			this.nameOut.innerHTML = 'scene '+ this.sceneNumber  + '';
 			
-			this.getHeightPercentage();
+			this.setHeightPercentage();
 		};
-		Scene.prototype.getHeightPercentage = function(){
+		Scene.prototype.setHeightPercentage = function(){
 			this.heightPercentage = ( (this.ele.offsetHeight*100) / document.body.offsetHeight );
 			this.heightPercentage = Math.round(this.heightPercentage);
 			this.heightOut.innerHTML = 'height '+ this.ele.offsetHeight +'px / '+ this.heightPercentage+ '%';
 		};
 		Scene.prototype.animate = function( percentage ){
-			this.aniPercentage = Math.round( (percentage * 100 )/this.heightPercentage );
+			this.aniPercentage = Math.round( (percentage * 100 ) / this.heightPercentage );
+			//clamp
+			this.aniPercentage = Math.min(Math.max(this.aniPercentage, 0), 100);
 			
 			this.aniOut.innerHTML = 'Animation: ' +this.aniPercentage + ' %';
 			
-			this.constructor.scenePercent.innerHTML =  'Scene '+ this.sceneNumber  + ' - Animated: ' +this.aniPercentage + ' %'
+			this.constructor.scenePercent.innerHTML =  'Scene '+ this.sceneNumber  + ' - Animated: ' +this.aniPercentage + ' %';
 		};
 		
 		
 		
+		
+		var scrollTest;
 		//events
 		window.addEventListener('load',function(){
 			scrollTest = new Scroller();
