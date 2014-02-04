@@ -51,13 +51,15 @@
 			padding:10px;
 			background:#666;
 			color:#eee;
+			
 			z-index:10;
 		}
 		
 		/*sprite styles*/
-		.one #heroSprite {
-			position:absolute;
-			bottom:0;
+		.spriteWrap {
+			position:fixed;
+			top:50px;
+			z-index:11;
 		}
 	</style>
 	<script src="js/sprite.js" type="text/javascript" charset="utf-8"></script>
@@ -66,14 +68,23 @@
 	
 	<script>
 		var scrollTest;
+		var spriteTest;
+		function onScroller( percentage ){
+			if(spriteTest){
+				spriteTest.update();
+				spriteTest.percentPlayed = percentage;
+			} 
+		}
 		//events
 		window.addEventListener('load',function(){
-			scrollTest = new Scroller();
+			scrollTest = new Scroller( onScroller );
 			
+			
+			//make sprite
 			var heroSprite = document.getElementById('heroSprite');
 			var pathPrefix = './images/';
 			var json = 'hero.json';
-			new IBM.watson.Sprite( heroSprite, pathPrefix, json  );
+			spriteTest = new IBM.watson.Sprite( heroSprite, pathPrefix, json  );
 			
 			
 		},false);
@@ -93,6 +104,9 @@
 		<p class="mainPercent"></p>
 		<p class="scenePercent"></p>
 	</div>
+	<div class="spriteWrap">
+		<div id="heroSprite"></div>
+	</div>
 	<div id="testScroll">
 		<div class="scene one">
 			<div class="output">
@@ -100,7 +114,6 @@
 				<p class="height"></p>
 				<p class="animation"></p>
 			</div>
-			<div id="heroSprite"></div>
 			<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec ultrices volutpat sodales. Etiam cursus sed quam pellentesque suscipit. Fusce luctus lorem sed risus rutrum euismod. Nam diam nulla, vulputate a vulputate non, tempus ac nisl. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Pellentesque placerat auctor luctus. Suspendisse lacinia ligula orci, in lobortis dolor suscipit tristique. Proin ut lorem nec justo dignissim tempor sed et augue. Maecenas tempor aliquam facilisis. Sed at justo dictum, posuere nisl et, luctus sapien. Curabitur neque dolor, sollicitudin eu sodales eu, tincidunt a velit. Aliquam ipsum massa, vestibulum in lorem rhoncus, interdum mollis urna. Cras eu tortor in ipsum volutpat facilisis. Fusce id sodales tellus. Ut sed nulla quis ante malesuada faucibus in sit amet magna.</p>
 
 <p>Proin gravida volutpat diam a lobortis. Morbi vel tellus eget mauris semper luctus. Suspendisse urna urna, lacinia at egestas eget, accumsan accumsan lacus. Cras nec consectetur neque, vitae pharetra lorem. Curabitur iaculis sapien at velit interdum, vel varius turpis suscipit. Cras quis magna a nibh feugiat consequat. Quisque ante arcu, aliquam ac nisl nec, pulvinar varius dolor. Vivamus sodales risus quis viverra egestas. Sed rhoncus, sapien fermentum pellentesque dignissim, dui odio ultricies est, non venenatis sem ipsum nec risus. Phasellus nisi enim, porttitor sit amet tellus id, pellentesque aliquam est. Praesent et mauris commodo, imperdiet nulla nec, egestas mauris. Proin sollicitudin risus arcu, eget consectetur dui tristique quis. Vestibulum luctus sapien lacus, ut faucibus est blandit eget.</p>

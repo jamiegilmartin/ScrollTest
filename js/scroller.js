@@ -1,7 +1,8 @@
 /**
  * @Class Scroller
  */
-function Scroller(){
+function Scroller( callback ){
+	this.callback = callback;
 	this.wrap = document.getElementById('testScroll');
 	this.output = document.getElementById('output');
 	this.mainPercentOut = this.output.getElementsByClassName('mainPercent')[0];
@@ -44,7 +45,10 @@ Scroller.prototype.scroll = function(){
 	//set last scroll percentage
 	this.lastScrollPercentage  = this.scrollPercentage;
 	
-	if(this.scrollPercentage <= 100 && this.scrollPercentage >= 0 ) this.updateScene();
+	if(this.scrollPercentage <= 100 && this.scrollPercentage >= 0 ){
+		this.updateScene();
+		this.callback( this.scrollPercentage );
+	}
 };
 Scroller.prototype.updateScene = function(){
 	var aniTo = this.accumulativePercentagesScrolled < 100 ? this.scrollPercentage - this.accumulativePercentagesScrolled : 100;

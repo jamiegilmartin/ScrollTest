@@ -38,7 +38,7 @@ IBM.watson.Sprite.prototype.init = function( atlas ){
 	
 	//set img src for drawing
 	this.img.src = this.pathPrefix + atlas.meta.image;
-	this.img.style.position = 'absolute';
+	//this.img.style.position = 'absolute';
 	//this.img.style.left = 0;
 	//this.img.style.top = 0;
 	
@@ -67,7 +67,7 @@ IBM.watson.Sprite.prototype.init = function( atlas ){
 };
 /**
  * tester function
-
+ */
 IBM.watson.Sprite.prototype.animate = function(){
 	var self = this;
 	function animate(){
@@ -84,13 +84,12 @@ IBM.watson.Sprite.prototype.animate = function(){
 	},false)
 	
 };
- */
+
 
 IBM.watson.Sprite.prototype.update = function(){
-	console.log('updating sprite')
 	//set currentFrame based on percentage
 	this.currentFrame = Math.round( ( (this.frames.length-1) * this.percentPlayed )/100 );
-	//this.draw();
+	this.draw();
 };
 
 IBM.watson.Sprite.prototype.draw = function(){
