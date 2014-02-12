@@ -1,6 +1,3 @@
-var IBM = IBM || {};
-IBM.watson = IBM.watson || {};
-
 /**
  * @Class Sprite
  * @author jamie.gilmartin@ogilvy.com
@@ -8,7 +5,7 @@ IBM.watson = IBM.watson || {};
  * @param view - path to image and json
  * @param view - name of json file
  */
-IBM.watson.Sprite = function( view, pathPrefix, json ){
+Sprite = function( view, pathPrefix, json ){
 	this.view = view;
 	this.json = json;
 	this.duration = 1;
@@ -23,7 +20,7 @@ IBM.watson.Sprite = function( view, pathPrefix, json ){
 	
 	this.requestJSON( this.pathPrefix + this.json  );
 };
-IBM.watson.Sprite.prototype.requestJSON = function( path  ){
+Sprite.prototype.requestJSON = function( path  ){
 	//request
 	var self = this,
 		xhr = new XMLHttpRequest();
@@ -34,7 +31,7 @@ IBM.watson.Sprite.prototype.requestJSON = function( path  ){
 	};
 	xhr.send();
 };
-IBM.watson.Sprite.prototype.init = function( atlas ){
+Sprite.prototype.init = function( atlas ){
 	
 	//set img src for drawing
 	this.img.src = this.pathPrefix + atlas.meta.image;
@@ -68,7 +65,7 @@ IBM.watson.Sprite.prototype.init = function( atlas ){
 /**
  * tester function
  */
-IBM.watson.Sprite.prototype.animate = function(){
+Sprite.prototype.animate = function(){
 	var self = this;
 	function animate(){
 		if(self.percentPlayed <= 100 ){
@@ -86,13 +83,13 @@ IBM.watson.Sprite.prototype.animate = function(){
 };
 
 
-IBM.watson.Sprite.prototype.update = function(){
+Sprite.prototype.update = function(){
 	//set currentFrame based on percentage
 	this.currentFrame = Math.round( ( (this.frames.length-1) * this.percentPlayed )/100 );
 	this.draw();
 };
 
-IBM.watson.Sprite.prototype.draw = function(){
+Sprite.prototype.draw = function(){
 	
 	var frame = this.frames[this.currentFrame];
 	
